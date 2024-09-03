@@ -15,7 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.capability.DefaultExactCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.DefaultFeatureCapabilitySelector;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
@@ -36,15 +39,30 @@ public abstract class DefaultMutableModuleDependencyCapabilitiesHandler implemen
     protected abstract ObjectFactory getObjectFactory();
 
     @Override
-    public abstract SetProperty<Capability> getRequestedCapabilities();
+    public abstract SetProperty<CapabilitySelector> getCapabilitySelectors();
 
     @Override
     public void requireCapability(Object capabilityNotation) {
         if (capabilityNotation instanceof Provider) {
-            getRequestedCapabilities().add(((Provider<?>) capabilityNotation).map(capabilityNotationParser::parseNotation));
+            getCapabilitySelectors().add(((Provider<?>) capabilityNotation).map(this::convertExact));
         } else {
-            getRequestedCapabilities().add(capabilityNotationParser.parseNotation(capabilityNotation));
+            getCapabilitySelectors().add(convertExact(capabilityNotation));
         }
+    }
+
+    private DefaultExactCapabilitySelector convertExact(Object notation) {
+        Capability capability = capabilityNotationParser.parseNotation(notation);
+        return new DefaultExactCapabilitySelector(capability.getGroup(), capability.getName());
+    }
+
+    @Override
+    public void requireFeature(String featureName) {
+        getCapabilitySelectors().add(new DefaultFeatureCapabilitySelector(featureName));
+    }
+
+    @Override
+    public void requireFeature(Provider<String> featureName) {
+        getCapabilitySelectors().add(featureName.map(DefaultFeatureCapabilitySelector::new));
     }
 
     @Override
@@ -59,7 +77,7 @@ public abstract class DefaultMutableModuleDependencyCapabilitiesHandler implemen
         DefaultMutableModuleDependencyCapabilitiesHandler out = getObjectFactory().newInstance(
             DefaultMutableModuleDependencyCapabilitiesHandler.class, capabilityNotationParser
         );
-        out.getRequestedCapabilities().addAll(getRequestedCapabilities());
+        out.getCapabilitySelectors().addAll(getCapabilitySelectors());
         return out;
     }
 }

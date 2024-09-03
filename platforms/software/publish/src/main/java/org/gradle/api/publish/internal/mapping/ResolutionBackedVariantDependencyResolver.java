@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -35,7 +36,6 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
@@ -357,14 +357,14 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
 
     private static class ModuleDependencyDetails {
         final AttributeContainer requestAttributes;
-        final List<Capability> requestCapabilities;
+        final Set<CapabilitySelector> capabilitySelectors;
 
         public ModuleDependencyDetails(
             AttributeContainer requestAttributes,
-            List<Capability> requestCapabilities
+            Set<CapabilitySelector> capabilitySelectors
         ) {
             this.requestAttributes = requestAttributes;
-            this.requestCapabilities = requestCapabilities;
+            this.capabilitySelectors = capabilitySelectors;
         }
 
         @Override
@@ -376,19 +376,19 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
                 return false;
             }
             ModuleDependencyDetails that = (ModuleDependencyDetails) o;
-            return Objects.equals(requestAttributes, that.requestAttributes) && Objects.equals(requestCapabilities, that.requestCapabilities);
+            return Objects.equals(requestAttributes, that.requestAttributes) && Objects.equals(capabilitySelectors, that.capabilitySelectors);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(requestAttributes, requestCapabilities);
+            return Objects.hash(requestAttributes, capabilitySelectors);
         }
 
         public static ModuleDependencyDetails from(ModuleDependency dependency, AttributeDesugaring attributeDesugaring) {
             ImmutableAttributes attributes = ((AttributeContainerInternal) dependency.getAttributes()).asImmutable();
             return new ModuleDependencyDetails(
                 attributeDesugaring.desugar(attributes),
-                dependency.getRequestedCapabilities()
+                dependency.getCapabilitySelectors().get()
             );
         }
 
@@ -396,7 +396,7 @@ public class ResolutionBackedVariantDependencyResolver implements VariantDepende
         public static ModuleDependencyDetails from(ComponentSelector componentSelector) {
             return new ModuleDependencyDetails(
                 componentSelector.getAttributes(),
-                componentSelector.getRequestedCapabilities()
+                componentSelector.getCapabilitySelectors()
             );
         }
     }

@@ -340,20 +340,25 @@ abstract class AbstractModuleDependencySpec extends Specification {
     void "copy does not mutate original capabilities"() {
         dependency.capabilities {
             it.requireCapability('org:original:1')
+            it.requireFeature('foo')
         }
-        def parsedCapability = dependency.requestedCapabilities[0]
+        def capabilitySelector1 = dependency.capabilitySelectors.get()[0]
+        def capabilitySelector2 = dependency.capabilitySelectors.get()[1]
 
         when:
         def copy = dependency.copy()
         copy.capabilities {
             it.requireCapability('org:copy:1')
+            it.requireFeature('bar')
         }
 
         then:
-        dependency.requestedCapabilities == [parsedCapability]
-        copy.requestedCapabilities.size() == 2
-        copy.requestedCapabilities[0] == parsedCapability
-        copy.requestedCapabilities[1].name == 'copy'
+        dependency.capabilitySelectors.get() == [capabilitySelector1, capabilitySelector2] as Set
+        copy.capabilitySelectors.get().size() == 4
+        copy.capabilitySelectors.get()[0] == capabilitySelector1
+        copy.capabilitySelectors.get()[1] == capabilitySelector2
+        copy.capabilitySelectors.get()[2].name == 'copy'
+        copy.capabilitySelectors.get()[3].featureName == 'bar'
 
     }
 
@@ -381,7 +386,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         assert copiedDependency.artifacts == dependency.artifacts
         assert copiedDependency.excludeRules == dependency.excludeRules
         assert copiedDependency.attributes == dependency.attributes
-        assert copiedDependency.requestedCapabilities == dependency.requestedCapabilities
+        assert copiedDependency.capabilitySelectors.get() == dependency.capabilitySelectors.get()
 
         assert copiedDependency.attributes.is(ImmutableAttributes.EMPTY) || !copiedDependency.attributes.is(dependency.attributes)
         assert !copiedDependency.artifacts.is(dependency.artifacts)

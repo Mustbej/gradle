@@ -16,19 +16,22 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
+import com.google.common.collect.ImmutableSet
+import org.gradle.api.artifacts.capability.CapabilitySelector
 import org.gradle.api.artifacts.component.LibraryComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint
+import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer
+import org.gradle.api.internal.artifacts.capability.DefaultExactCapabilitySelector
+import org.gradle.api.internal.artifacts.capability.DefaultFeatureCapabilitySelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.local.model.ProjectComponentSelectorInternal
@@ -41,7 +44,10 @@ import org.gradle.util.TestUtil
 import static org.gradle.util.Path.path
 
 class ComponentSelectorSerializerTest extends SerializerSpec {
-    private final ComponentSelectorSerializer serializer = new ComponentSelectorSerializer(new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()))
+    private final ComponentSelectorSerializer serializer = new ComponentSelectorSerializer(
+        new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
+        new CapabilitySelectorSerializer()
+    )
 
     private static ImmutableVersionConstraint constraint(String version, String preferredVersion = '', String strictVersion = '', List<String> rejectVersions = [], String branch = null) {
         return new DefaultImmutableVersionConstraint(
@@ -72,7 +78,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         then:
         result.buildPath == selector.buildPath
         result.projectPath == selector.projectPath
-        result.requestedCapabilities == selector.requestedCapabilities
+        result.capabilitySelectors == selector.capabilitySelectors
         assertSameProjectId(result as ProjectComponentSelectorInternal, selector)
     }
 
@@ -86,7 +92,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         then:
         result.buildPath == selector.buildPath
         result.projectPath == selector.projectPath
-        result.requestedCapabilities == selector.requestedCapabilities
+        result.capabilitySelectors == selector.capabilitySelectors
         assertSameProjectId(result as ProjectComponentSelectorInternal, selector)
     }
 
@@ -100,7 +106,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         then:
         result.buildPath == selector.buildPath
         result.projectPath == selector.projectPath
-        result.requestedCapabilities == selector.requestedCapabilities
+        result.capabilitySelectors == selector.capabilitySelectors
         assertSameProjectId(result as ProjectComponentSelectorInternal, selector)
     }
 
@@ -114,7 +120,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         then:
         result.buildPath == selector.buildPath
         result.projectPath == selector.projectPath
-        result.requestedCapabilities == selector.requestedCapabilities
+        result.capabilitySelectors == selector.capabilitySelectors
         assertSameProjectId(result as ProjectComponentSelectorInternal, selector)
     }
 
@@ -130,7 +136,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         result.projectPath == selector.projectPath
         result.attributes.getAttribute(Attribute.of('foo', String)) == 'x'
         result.attributes.getAttribute(Attribute.of('bar', String)) == 'y'
-        result.requestedCapabilities == selector.requestedCapabilities
+        result.capabilitySelectors == selector.capabilitySelectors
         assertSameProjectId(result as ProjectComponentSelectorInternal, selector)
 
         where:
@@ -155,7 +161,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         result.versionConstraint.preferredVersion == ''
         result.versionConstraint.strictVersion == ''
         result.versionConstraint.rejectedVersions == []
-        result.requestedCapabilities == selector.requestedCapabilities
+        result.capabilitySelectors == selector.capabilitySelectors
     }
 
     def "serializes BuildComponentSelector"() {
@@ -227,11 +233,11 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         given:
 
         ModuleComponentSelector selector1 = DefaultModuleComponentSelector.newSelector(
-            DefaultModuleIdentifier.newId('group1', 'name1'), constraint('1.0'), AttributeTestUtil.attributes("foo": "val1"), [])
+            DefaultModuleIdentifier.newId('group1', 'name1'), constraint('1.0'), AttributeTestUtil.attributes("foo": "val1"), [] as Set)
         ModuleComponentSelector selector2 = DefaultModuleComponentSelector.newSelector(
-            DefaultModuleIdentifier.newId('group2', 'name2'), constraint('1.0'), AttributeTestUtil.attributes("foo": "val2"), [])
+            DefaultModuleIdentifier.newId('group2', 'name2'), constraint('1.0'), AttributeTestUtil.attributes("foo": "val2"), [] as Set)
         ModuleComponentSelector selector3 = DefaultModuleComponentSelector.newSelector(
-            DefaultModuleIdentifier.newId('group3', 'name3'), constraint('1.0'), AttributeTestUtil.attributes("foo": "val1"), [])
+            DefaultModuleIdentifier.newId('group3', 'name3'), constraint('1.0'), AttributeTestUtil.attributes("foo": "val1"), [] as Set)
 
         when:
         ModuleComponentSelector result1 = serialize(selector1, serializer)
@@ -251,11 +257,11 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
 
         given:
         ModuleComponentSelector selector1 = DefaultModuleComponentSelector.newSelector(
-            DefaultModuleIdentifier.newId('group1', 'name1'), constraint('1.0'), factory.of(attr, "val1"), [])
+            DefaultModuleIdentifier.newId('group1', 'name1'), constraint('1.0'), factory.of(attr, "val1"), [] as Set)
         ModuleComponentSelector selector2 = DefaultModuleComponentSelector.newSelector(
-            DefaultModuleIdentifier.newId('group2', 'name2'), constraint('1.0'), factory.of(attr, "val2"), [])
+            DefaultModuleIdentifier.newId('group2', 'name2'), constraint('1.0'), factory.of(attr, "val2"), [] as Set)
         ModuleComponentSelector selector3 = DefaultModuleComponentSelector.newSelector(
-            DefaultModuleIdentifier.newId('group3', 'name3'), constraint('1.0'), factory.of(attr, "val1"), [])
+            DefaultModuleIdentifier.newId('group3', 'name3'), constraint('1.0'), factory.of(attr, "val1"), [] as Set)
 
         when:
         byte[] result1 = toBytes(selector1, serializer)
@@ -275,7 +281,12 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         assert result.projectIdentity.projectName == selector.projectIdentity.projectName
     }
 
-    private static List<Capability> capabilities() {
-        [new DefaultImmutableCapability("org", "foo", "${Math.random()}"), new DefaultImmutableCapability("org", "bar", "${Math.random()}")]
+    private static ImmutableSet<CapabilitySelector> capabilities() {
+        ImmutableSet.of(
+            new DefaultExactCapabilitySelector("org", "foo"),
+            new DefaultExactCapabilitySelector("org", "bar"),
+            new DefaultFeatureCapabilitySelector("feature1"),
+            new DefaultFeatureCapabilitySelector("feature2")
+        )
     }
 }

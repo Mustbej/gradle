@@ -21,8 +21,9 @@ import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ExternalModuleDependency;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.file.collections.FailingFileCollection;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -60,12 +61,14 @@ import java.io.File;
  */
 public abstract class ScalaRuntime {
 
-    private final Project project;
+    private final ProjectInternal project;
+    private final DependencyFactory dependencyFactory;
     private final JvmPluginServices jvmPluginServices;
 
     public ScalaRuntime(Project project) {
-        this.project = project;
-        this.jvmPluginServices = ((ProjectInternal) project).getServices().get(JvmPluginServices.class);
+        this.project = (ProjectInternal) project;
+        this.dependencyFactory = this.project.getServices().get(DependencyFactory.class);
+        this.jvmPluginServices = this.project.getServices().get(JvmPluginServices.class);
     }
 
     /**
@@ -80,7 +83,7 @@ public abstract class ScalaRuntime {
     public FileCollection inferScalaClasspath(final Iterable<File> classpath) {
         // alternatively, we could return project.getLayout().files(Runnable)
         // would differ in the following ways: 1. live (not sure if we want live here) 2. no autowiring (probably want autowiring here)
-        return new LazilyInitializedFileCollection(((ProjectInternal) project).getTaskDependencyFactory()) {
+        return new LazilyInitializedFileCollection(project.getTaskDependencyFactory()) {
             @Override
             public String getDisplayName() {
                 return "Scala runtime classpath";
@@ -117,7 +120,7 @@ public abstract class ScalaRuntime {
 
                 String zincVersion = project.getExtensions().getByType(ScalaPluginExtension.class).getZincVersion().get();
 
-                DefaultExternalModuleDependency compilerBridgeJar = getScalaBridgeDependency(scalaVersion, zincVersion);
+                ExternalModuleDependency compilerBridgeJar = getScalaBridgeDependency(scalaVersion, zincVersion);
                 compilerBridgeJar.setTransitive(false);
                 compilerBridgeJar.artifact(artifact -> {
                     if (!isScala3) {
@@ -127,7 +130,7 @@ public abstract class ScalaRuntime {
                     artifact.setExtension("jar");
                     artifact.setName(compilerBridgeJar.getName());
                 });
-                DefaultExternalModuleDependency compilerInterfaceJar = getScalaCompilerInterfaceDependency(scalaVersion, zincVersion);
+                ExternalModuleDependency compilerInterfaceJar = getScalaCompilerInterfaceDependency(scalaVersion, zincVersion);
 
                 Configuration scalaRuntimeClasspath = isScala3 ?
                   project.getConfigurations().detachedConfiguration(getScalaCompilerDependency(scalaVersion), compilerBridgeJar, compilerInterfaceJar, getScaladocDependency(scalaVersion)) :
@@ -185,12 +188,12 @@ public abstract class ScalaRuntime {
      * @param zincVersion version of zinc relevant for Scala 2
      * @return bridge dependency to download
      */
-    private DefaultExternalModuleDependency getScalaBridgeDependency(String scalaVersion, String zincVersion) {
+    private ExternalModuleDependency getScalaBridgeDependency(String scalaVersion, String zincVersion) {
         if (ScalaRuntimeHelper.isScala3(scalaVersion)) {
-            return new DefaultExternalModuleDependency("org.scala-lang", "scala3-sbt-bridge", scalaVersion);
+            return createDependency("org.scala-lang", "scala3-sbt-bridge", scalaVersion);
         } else {
             String scalaMajorMinorVersion = Joiner.on('.').join(Splitter.on('.').splitToList(scalaVersion).subList(0, 2));
-            return new DefaultExternalModuleDependency("org.scala-sbt", "compiler-bridge_" + scalaMajorMinorVersion, zincVersion);
+            return createDependency("org.scala-sbt", "compiler-bridge_" + scalaMajorMinorVersion, zincVersion);
         }
     }
 
@@ -201,11 +204,11 @@ public abstract class ScalaRuntime {
      * @param scalaVersion version of scala to download the compiler for
      * @return compiler dependency to download
      */
-    private DefaultExternalModuleDependency getScalaCompilerDependency(String scalaVersion) {
+    private ExternalModuleDependency getScalaCompilerDependency(String scalaVersion) {
         if (ScalaRuntimeHelper.isScala3(scalaVersion)) {
-            return new DefaultExternalModuleDependency("org.scala-lang", "scala3-compiler_3", scalaVersion);
+            return createDependency("org.scala-lang", "scala3-compiler_3", scalaVersion);
         } else {
-            return new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion);
+            return createDependency("org.scala-lang", "scala-compiler", scalaVersion);
         }
     }
 
@@ -216,11 +219,11 @@ public abstract class ScalaRuntime {
      * @param zincVersion version of zinc to download the compiler interfaces for as fallback for Scala 2
      * @return compiler interfaces dependency to download
      */
-    private DefaultExternalModuleDependency getScalaCompilerInterfaceDependency(String scalaVersion, String zincVersion) {
+    private ExternalModuleDependency getScalaCompilerInterfaceDependency(String scalaVersion, String zincVersion) {
         if (ScalaRuntimeHelper.isScala3(scalaVersion)) {
-            return new DefaultExternalModuleDependency("org.scala-lang", "scala3-interfaces", scalaVersion);
+            return createDependency("org.scala-lang", "scala3-interfaces", scalaVersion);
         } else {
-            return new DefaultExternalModuleDependency("org.scala-sbt", "compiler-interface", zincVersion);
+            return createDependency("org.scala-sbt", "compiler-interface", zincVersion);
         }
     }
 
@@ -230,11 +233,15 @@ public abstract class ScalaRuntime {
      * @param scalaVersion version of scala to download the scaladoc for
      * @return scaladoc dependency to download
      */
-    private DefaultExternalModuleDependency getScaladocDependency(String scalaVersion) {
+    private ExternalModuleDependency getScaladocDependency(String scalaVersion) {
         if (scalaVersion.startsWith("3.")) {
-            return new DefaultExternalModuleDependency("org.scala-lang", "scaladoc_3", scalaVersion);
+            return createDependency("org.scala-lang", "scaladoc_3", scalaVersion);
         } else {
             return null;
         }
+    }
+
+    private ExternalModuleDependency createDependency(String group, String module, String version) {
+        return dependencyFactory.create(group, module, version);
     }
 }

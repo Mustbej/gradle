@@ -238,12 +238,16 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         if (!Objects.equal(getAttributes(), that.getAttributes())) {
             return false;
         }
-        return Objects.equal(getRequestedCapabilities(), that.getRequestedCapabilities());
+        return areCapabilitiesEqual(that);
     }
 
     @Override
     public int hashCode() {
-        return getIdentityPath().hashCode() ^ (getTargetConfiguration() != null ? getTargetConfiguration().hashCode() : 31) ^ (buildProjectDependencies ? 1 : 0);
+        int hashCode = getIdentityPath().hashCode();
+        if (getTargetConfiguration() != null) {
+            hashCode = 31 * hashCode + getTargetConfiguration().hashCode();
+        }
+        return hashCode;
     }
 
     @Override

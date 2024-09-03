@@ -24,6 +24,8 @@ import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
+import org.gradle.api.artifacts.capability.ExactCapabilitySelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultExcludeRuleContainer;
@@ -33,6 +35,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -188,6 +191,17 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         return true;
     }
 
+    protected boolean areCapabilitiesEqual(ModuleDependency other) {
+        if (other instanceof AbstractModuleDependency) {
+            AbstractModuleDependency otherModuleDependency = (AbstractModuleDependency) other;
+            if (moduleDependencyCapabilities == null && otherModuleDependency.moduleDependencyCapabilities == null) {
+                return true;
+            }
+        }
+
+        return getCapabilitySelectors().get().equals(other.getCapabilitySelectors().get());
+    }
+
     protected boolean isCommonContentEquals(ModuleDependency dependencyRhs) {
         if (!isKeyEquals(dependencyRhs)) {
             return false;
@@ -207,10 +221,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         if (!Objects.equal(getAttributes(), dependencyRhs.getAttributes())) {
             return false;
         }
-        if (!Objects.equal(getRequestedCapabilities(), dependencyRhs.getRequestedCapabilities())) {
-            return false;
-        }
-        return true;
+        return areCapabilitiesEqual(dependencyRhs);
     }
 
     @Override
@@ -241,14 +252,18 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
             warnAboutInternalApiUse("capabilities");
             return this;
         }
+        initCapabilities();
+        configureAction.execute(moduleDependencyCapabilities);
+        return this;
+    }
+
+    private void initCapabilities() {
         if (moduleDependencyCapabilities == null) {
             moduleDependencyCapabilities = objectFactory.newInstance(
                 DefaultMutableModuleDependencyCapabilitiesHandler.class,
                 capabilityNotationParser
             );
         }
-        configureAction.execute(moduleDependencyCapabilities);
-        return this;
     }
 
     @Override
@@ -256,7 +271,43 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         if (moduleDependencyCapabilities == null) {
             return Collections.emptyList();
         }
-        return ImmutableList.copyOf(moduleDependencyCapabilities.getRequestedCapabilities().get());
+        return getCapabilitySelectors().get().stream()
+            .filter(c -> c instanceof ExactCapabilitySelector)
+            .map(c -> (ExactCapabilitySelector) c)
+            .map(CapabilityAdapter::new)
+            .collect(ImmutableList.toImmutableList());
+    }
+
+    // We use this since we cannot access the DefaultImmutableCapability
+    // constructor from this project.
+    private static class CapabilityAdapter implements Capability {
+        private final ExactCapabilitySelector selector;
+
+        public CapabilityAdapter(ExactCapabilitySelector selector) {
+            this.selector = selector;
+        }
+
+        @Override
+        public String getGroup() {
+            return selector.getGroup();
+        }
+
+        @Override
+        public String getName() {
+            return selector.getName();
+        }
+
+        @Nullable
+        @Override
+        public String getVersion() {
+            return null;
+        }
+    }
+
+    @Override
+    public Provider<Set<CapabilitySelector>> getCapabilitySelectors() {
+        initCapabilities();
+        return moduleDependencyCapabilities.getCapabilitySelectors();
     }
 
     @Override
@@ -322,7 +373,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     private void validateNotVariantAware() {
-        if (!getAttributes().isEmpty() || !getRequestedCapabilities().isEmpty()) {
+        if (!getAttributes().isEmpty() || (moduleDependencyCapabilities != null && !getCapabilitySelectors().get().isEmpty())) {
             throw new InvalidUserCodeException("Cannot set artifact / configuration information on a dependency that has attributes or capabilities configured");
         }
     }

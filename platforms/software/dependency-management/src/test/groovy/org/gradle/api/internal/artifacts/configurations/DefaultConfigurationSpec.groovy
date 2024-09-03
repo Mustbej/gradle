@@ -47,6 +47,7 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
@@ -852,7 +853,7 @@ class DefaultConfigurationSpec extends Specification implements InspectableConfi
         copy.dependencyResolutionListeners.size() == 1
     }
 
-    private prepareConfigurationForCopyTest(configuration = conf()) {
+    private Configuration prepareConfigurationForCopyTest(configuration = conf()) {
         configuration.visible = false
         configuration.transitive = false
         configuration.description = "descript"
@@ -1808,8 +1809,11 @@ All Artifacts:
         }
     }
 
-    private dependency(String group, String name, String version) {
-        new DefaultExternalModuleDependency(group, name, version)
+    private Dependency dependency(String group, String name, String version) {
+        def dep = new DefaultExternalModuleDependency(group, name, version)
+        dep.setObjectFactory(TestUtil.objectFactory())
+        dep.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
+        dep
     }
 
     private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":", ConfigurationRole role = ConfigurationRoles.LEGACY) {

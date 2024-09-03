@@ -41,6 +41,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.publish.internal.mapping.DefaultDependencyCoordinateResolverFactory
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
@@ -146,7 +147,7 @@ class DefaultIvyPublicationTest extends Specification {
         moduleDependency.artifacts >> [artifact]
         moduleDependency.excludeRules >> [exclude]
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
-        moduleDependency.requestedCapabilities >> []
+        moduleDependency.capabilitySelectors >> Providers.of([] as Set)
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -184,7 +185,7 @@ class DefaultIvyPublicationTest extends Specification {
         projectDependency.artifacts >> []
         projectDependency.excludeRules >> [exclude]
         projectDependency.attributes >> ImmutableAttributes.EMPTY
-        projectDependency.requestedCapabilities >> []
+        projectDependency.capabilitySelectors >> Providers.of([] as Set)
 
         when:
         publication.from(componentWithDependency(projectDependency))

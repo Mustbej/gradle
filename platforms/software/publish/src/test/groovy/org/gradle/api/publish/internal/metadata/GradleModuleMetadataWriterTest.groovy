@@ -30,6 +30,7 @@ import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.component.SoftwareComponentVariant
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.capability.DefaultExactCapabilitySelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
@@ -45,7 +46,6 @@ import org.gradle.api.publish.internal.mapping.ComponentDependencyResolver
 import org.gradle.api.publish.internal.mapping.DependencyCoordinateResolverFactory
 import org.gradle.api.publish.internal.mapping.ResolvedCoordinates
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
-import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -313,7 +313,7 @@ class GradleModuleMetadataWriterTest extends Specification {
         d8.versionConstraint >> requires("v1")
         d8.transitive >> true
         d8.attributes >> ImmutableAttributes.EMPTY
-        d8.requestedCapabilities >> [new DefaultImmutableCapability("org", "test", "1.0")]
+        d8.capabilitySelectors >> Providers.of([new DefaultExactCapabilitySelector("org", "test")] as Set)
 
         def v1 = Stub(UsageContext)
         v1.name >> "v1"
@@ -367,8 +367,7 @@ class GradleModuleMetadataWriterTest extends Specification {
           "requestedCapabilities": [
             {
               "group": "org",
-              "name": "test",
-              "version": "1.0"
+              "name": "test"
             }
           ]
         }

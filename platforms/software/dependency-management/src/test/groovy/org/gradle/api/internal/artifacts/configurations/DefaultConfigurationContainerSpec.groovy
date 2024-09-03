@@ -22,6 +22,7 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
@@ -155,7 +156,11 @@ class DefaultConfigurationContainerSpec extends Specification {
         1 * domainObjectContext.model >> StandaloneDomainObjectContext.ANONYMOUS
 
         def dependency1 = new DefaultExternalModuleDependency("group", "name", "version")
+        dependency1.setObjectFactory(TestUtil.objectFactory())
+        dependency1.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
         def dependency2 = new DefaultExternalModuleDependency("group", "name2", "version")
+        dependency2.setObjectFactory(TestUtil.objectFactory())
+        dependency2.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
 
         when:
         def detached = configurationContainer.detachedConfiguration(dependency1, dependency2)

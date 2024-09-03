@@ -15,6 +15,10 @@
  */
 package org.gradle.internal.component.local.model;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
+import org.gradle.api.artifacts.capability.ExactCapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
@@ -23,6 +27,7 @@ import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.project.ProjectIdentity;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.Path;
 
@@ -33,16 +38,16 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
 
     private final ProjectIdentity projectIdentity;
     private final ImmutableAttributes attributes;
-    private final List<Capability> requestedCapabilities;
+    private final ImmutableSet<CapabilitySelector> capabilitySelectors;
 
     public DefaultProjectComponentSelector(
         ProjectIdentity projectIdentity,
         ImmutableAttributes attributes,
-        List<Capability> requestedCapabilities
+        ImmutableSet<CapabilitySelector> capabilitySelectors
     ) {
         this.projectIdentity = projectIdentity;
         this.attributes = attributes;
-        this.requestedCapabilities = requestedCapabilities;
+        this.capabilitySelectors = capabilitySelectors;
     }
 
     @Override
@@ -100,7 +105,16 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
 
     @Override
     public List<Capability> getRequestedCapabilities() {
-        return requestedCapabilities;
+        return capabilitySelectors.stream()
+            .filter(c -> c instanceof ExactCapabilitySelector)
+            .map(c -> (ExactCapabilitySelector) c)
+            .map(s -> new DefaultImmutableCapability(s.getGroup(), s.getName(), null))
+            .collect(ImmutableList.toImmutableList());
+    }
+
+    @Override
+    public ImmutableSet<CapabilitySelector> getCapabilitySelectors() {
+        return capabilitySelectors;
     }
 
     @Override
@@ -118,12 +132,12 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         if (!attributes.equals(that.attributes)) {
             return false;
         }
-        return requestedCapabilities.equals(that.requestedCapabilities);
+        return capabilitySelectors.equals(that.capabilitySelectors);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(projectIdentity, attributes, requestedCapabilities);
+        return Objects.hash(projectIdentity, attributes, capabilitySelectors);
     }
 
     @Override
@@ -136,25 +150,25 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         return new DefaultProjectComponentSelector(
             current.getProjectIdentity(),
             attributes,
-            current.getRequestedCapabilities()
+            current.getCapabilitySelectors()
         );
     }
 
-    public static ProjectComponentSelector withCapabilities(ProjectComponentSelector selector, List<Capability> requestedCapabilities) {
+    public static ProjectComponentSelector withCapabilities(ProjectComponentSelector selector, ImmutableSet<CapabilitySelector> capabilitySelectors) {
         ProjectComponentSelectorInternal current = (ProjectComponentSelectorInternal) selector;
         return new DefaultProjectComponentSelector(
             current.getProjectIdentity(),
             current.getAttributes(),
-            requestedCapabilities
+            capabilitySelectors
         );
     }
 
-    public static ProjectComponentSelector withAttributesAndCapabilities(ProjectComponentSelector selector, ImmutableAttributes attributes, List<Capability> requestedCapabilities) {
+    public static ProjectComponentSelector withAttributesAndCapabilities(ProjectComponentSelector selector, ImmutableAttributes attributes, ImmutableSet<CapabilitySelector> capabilitySelectors) {
         ProjectComponentSelectorInternal current = (ProjectComponentSelectorInternal) selector;
         return new DefaultProjectComponentSelector(
             current.getProjectIdentity(),
             attributes,
-            requestedCapabilities
+            capabilitySelectors
         );
     }
 

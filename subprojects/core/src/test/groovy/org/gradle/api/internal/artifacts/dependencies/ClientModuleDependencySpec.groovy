@@ -29,8 +29,8 @@ class ClientModuleDependencySpec extends AbstractModuleDependencySpec {
 
     def "not equal with different module dependencies"() {
         when:
-        def dep1 = createDependency("group1", "name1", "version1", null)
-        def dep2 = createDependency("group1", "name1", "version1", null)
+        def dep1 = createDependency("group1", "name1", "version1")
+        def dep2 = createDependency("group1", "name1", "version1")
         dep2.addDependency(Mock(ModuleDependency))
 
         then:

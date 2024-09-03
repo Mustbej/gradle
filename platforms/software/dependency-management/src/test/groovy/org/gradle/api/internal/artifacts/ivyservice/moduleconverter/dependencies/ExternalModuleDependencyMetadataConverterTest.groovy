@@ -22,7 +22,9 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.VersionConstraintInternal
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
+import org.gradle.util.TestUtil
 
 class ExternalModuleDependencyMetadataConverterTest extends AbstractDependencyDescriptorFactoryInternalSpec {
 
@@ -37,6 +39,8 @@ class ExternalModuleDependencyMetadataConverterTest extends AbstractDependencyDe
     def testAddWithNullGroupAndNullVersionShouldHaveEmptyStringModuleRevisionValues() {
         when:
         ModuleDependency dependency = new DefaultExternalModuleDependency(null, "gradle-core", null, TEST_DEP_CONF)
+        dependency.setObjectFactory(TestUtil.objectFactory())
+        dependency.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
         LocalOriginDependencyMetadata dependencyMetaData = converter.createDependencyMetadata(dependency)
         ModuleComponentSelector selector = (ModuleComponentSelector) dependencyMetaData.getSelector()
 
@@ -51,6 +55,8 @@ class ExternalModuleDependencyMetadataConverterTest extends AbstractDependencyDe
         when:
         def configuration = withArtifacts ? null : TEST_DEP_CONF
         DefaultExternalModuleDependency moduleDependency = new DefaultExternalModuleDependency("org.gradle", "gradle-core", "1.0", configuration)
+        moduleDependency.setObjectFactory(TestUtil.objectFactory())
+        moduleDependency.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
         setUpDependency(moduleDependency, withArtifacts)
 
         LocalOriginDependencyMetadata dependencyMetaData = converter.createDependencyMetadata(moduleDependency)

@@ -18,16 +18,19 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.capability.DefaultExactCapabilitySelector;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
@@ -247,7 +250,11 @@ public class GradleModuleMetadataParser {
             variant.addFile(file.name, file.uri);
         }
         for (ModuleDependency dependency : dependencies) {
-            variant.addDependency(dependency.group, dependency.module, dependency.versionConstraint, dependency.excludes, dependency.reason, dependency.attributes, dependency.requestedCapabilities, dependency.endorsing, dependency.artifact);
+            ImmutableSet.Builder<CapabilitySelector> capabilitySelectors = ImmutableSet.builderWithExpectedSize(dependency.requestedCapabilities.size());
+            for (Capability requestedCapability : dependency.requestedCapabilities) {
+                capabilitySelectors.add(new DefaultExactCapabilitySelector(requestedCapability.getGroup(), requestedCapability.getName()));
+            }
+            variant.addDependency(dependency.group, dependency.module, dependency.versionConstraint, dependency.excludes, dependency.reason, dependency.attributes, capabilitySelectors.build(), dependency.endorsing, dependency.artifact);
         }
         for (ModuleDependencyConstraint dependencyConstraint : dependencyConstraints) {
             variant.addDependencyConstraint(dependencyConstraint.group, dependencyConstraint.module, dependencyConstraint.versionConstraint, dependencyConstraint.reason, dependencyConstraint.attributes);

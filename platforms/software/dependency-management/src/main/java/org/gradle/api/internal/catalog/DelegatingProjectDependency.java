@@ -24,10 +24,12 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.project.ProjectIdentity;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.Path;
 
@@ -145,6 +147,11 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     @Override
     public List<Capability> getRequestedCapabilities() {
         return delegate.getRequestedCapabilities();
+    }
+
+    @Override
+    public Provider<Set<CapabilitySelector>> getCapabilitySelectors() {
+        return delegate.getCapabilitySelectors();
     }
 
     @Override

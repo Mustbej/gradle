@@ -18,11 +18,13 @@ package org.gradle.api.internal.artifacts.dependencies
 
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.TestUtil
 
 import static org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependencySpec.assertDeepCopy
 import static org.gradle.util.Matchers.strictlyEqual
@@ -177,24 +179,30 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
     }
 
     private createProjectDependency() {
-        def out = new DefaultProjectDependency(project, true)
+        def out = inject(new DefaultProjectDependency(project, true))
         out.addArtifact(new DefaultDependencyArtifact("name", "type", "ext", "classifier", "url"))
         out
     }
 
+    def inject(DefaultProjectDependency dep) {
+        dep.setObjectFactory(TestUtil.objectFactory())
+        dep.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
+        dep
+    }
+
     void "knows if is equal"() {
         expect:
-        assertThat(new DefaultProjectDependency(project, true),
-            strictlyEqual(new DefaultProjectDependency(project, true)))
+        assertThat(inject(new DefaultProjectDependency(project, true)),
+            strictlyEqual(inject(new DefaultProjectDependency(project, true))))
 
-        assertThat(new DefaultProjectDependency(project, "conf1", false, TestFiles.taskDependencyFactory()),
-            strictlyEqual(new DefaultProjectDependency(project, "conf1", false, TestFiles.taskDependencyFactory())))
+        assertThat(inject(new DefaultProjectDependency(project, "conf1", false, TestFiles.taskDependencyFactory())),
+            strictlyEqual(inject(new DefaultProjectDependency(project, "conf1", false, TestFiles.taskDependencyFactory()))))
 
         when:
-        def base = new DefaultProjectDependency(project, "conf1", true, TestFiles.taskDependencyFactory())
-        def differentConf = new DefaultProjectDependency(project, "conf2", true, TestFiles.taskDependencyFactory())
-        def differentBuildDeps = new DefaultProjectDependency(project, "conf1", false, TestFiles.taskDependencyFactory())
-        def differentProject = new DefaultProjectDependency(Mock(ProjectInternal), "conf1", true, TestFiles.taskDependencyFactory())
+        def base = inject(new DefaultProjectDependency(project, "conf1", true, TestFiles.taskDependencyFactory()))
+        def differentConf = inject(new DefaultProjectDependency(project, "conf2", true, TestFiles.taskDependencyFactory()))
+        def differentBuildDeps = inject(new DefaultProjectDependency(project, "conf1", false, TestFiles.taskDependencyFactory()))
+        def differentProject = inject(new DefaultProjectDependency(Mock(ProjectInternal), "conf1", true, TestFiles.taskDependencyFactory()))
 
         then:
         base != differentConf
