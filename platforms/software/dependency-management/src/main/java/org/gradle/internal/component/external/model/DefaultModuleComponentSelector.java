@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.capability.ExactCapabilitySelector;
+import org.gradle.api.artifacts.capability.FeatureCapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -29,6 +30,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
+import org.gradle.api.internal.artifacts.capability.DefaultExactCapabilitySelector;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -105,9 +107,19 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
     @Override
     public List<Capability> getRequestedCapabilities() {
         return capabilitySelectors.stream()
-            .filter(c -> c instanceof ExactCapabilitySelector)
-            .map(c -> (ExactCapabilitySelector) c)
-            .map(s -> new DefaultImmutableCapability(s.getGroup(), s.getName(), null))
+            .map(c -> {
+                if (c instanceof ExactCapabilitySelector) {
+                    return ((DefaultExactCapabilitySelector) c).getBackingCapability();
+                } else if (c instanceof FeatureCapabilitySelector) {
+                    return new DefaultImmutableCapability(
+                        getGroup(),
+                        getModule() + "-" + ((FeatureCapabilitySelector) c).getFeatureName(),
+                        getVersion()
+                    );
+                } else {
+                    throw new UnsupportedOperationException("Unsupported capability selector type: " + c.getClass().getName());
+                }
+            })
             .collect(ImmutableList.toImmutableList());
     }
 

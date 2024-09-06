@@ -25,9 +25,9 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
+import org.gradle.api.internal.artifacts.capability.DefaultExactCapabilitySelector;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.project.ProjectIdentity;
-import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.Path;
 
@@ -107,8 +107,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     public List<Capability> getRequestedCapabilities() {
         return capabilitySelectors.stream()
             .filter(c -> c instanceof ExactCapabilitySelector)
-            .map(c -> (ExactCapabilitySelector) c)
-            .map(s -> new DefaultImmutableCapability(s.getGroup(), s.getName(), null))
+            .map(c -> ((DefaultExactCapabilitySelector) c).getBackingCapability())
             .collect(ImmutableList.toImmutableList());
     }
 

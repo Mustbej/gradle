@@ -226,7 +226,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
     /**
      * Returns the set of explicitly requested capabilities for this dependency.
      * <p>
-     * Prefer {@link #getCapabilitySelectors()}.
+     * Prefer {@link #getCapabilitySelectors()}. This method is not Isolated Projects compatible.
      *
      * @return An immutable view of all explicitly requested capabilities. Updates must be done calling {@link #capabilities(Action)}.
      *

@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
@@ -25,7 +24,6 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
-import org.gradle.api.artifacts.capability.ExactCapabilitySelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DefaultExcludeRuleContainer;
@@ -40,9 +38,7 @@ import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -263,44 +259,6 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
                 DefaultMutableModuleDependencyCapabilitiesHandler.class,
                 capabilityNotationParser
             );
-        }
-    }
-
-    @Override
-    public List<Capability> getRequestedCapabilities() {
-        if (moduleDependencyCapabilities == null) {
-            return Collections.emptyList();
-        }
-        return getCapabilitySelectors().get().stream()
-            .filter(c -> c instanceof ExactCapabilitySelector)
-            .map(c -> (ExactCapabilitySelector) c)
-            .map(CapabilityAdapter::new)
-            .collect(ImmutableList.toImmutableList());
-    }
-
-    // We use this since we cannot access the DefaultImmutableCapability
-    // constructor from this project.
-    private static class CapabilityAdapter implements Capability {
-        private final ExactCapabilitySelector selector;
-
-        public CapabilityAdapter(ExactCapabilitySelector selector) {
-            this.selector = selector;
-        }
-
-        @Override
-        public String getGroup() {
-            return selector.getGroup();
-        }
-
-        @Override
-        public String getName() {
-            return selector.getName();
-        }
-
-        @Nullable
-        @Override
-        public String getVersion() {
-            return null;
         }
     }
 

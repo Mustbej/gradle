@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.capability.DefaultFeatureCapabilitySele
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
@@ -283,8 +284,8 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
 
     private static ImmutableSet<CapabilitySelector> capabilities() {
         ImmutableSet.of(
-            new DefaultExactCapabilitySelector("org", "foo"),
-            new DefaultExactCapabilitySelector("org", "bar"),
+            new DefaultExactCapabilitySelector(new DefaultImmutableCapability("org", "foo", "1")),
+            new DefaultExactCapabilitySelector(new DefaultImmutableCapability("org", "bar", "2")),
             new DefaultFeatureCapabilitySelector("feature1"),
             new DefaultFeatureCapabilitySelector("feature2")
         )

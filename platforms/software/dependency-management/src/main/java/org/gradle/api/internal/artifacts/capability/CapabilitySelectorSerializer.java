@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.capability;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.capability.ExactCapabilitySelector;
 import org.gradle.api.artifacts.capability.FeatureCapabilitySelector;
+import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -43,7 +44,8 @@ public class CapabilitySelectorSerializer implements Serializer<CapabilitySelect
     private static CapabilitySelector readExactCapabilitySelector(Decoder decoder) throws IOException {
         String group = decoder.readString();
         String name = decoder.readString();
-        return new DefaultExactCapabilitySelector(group, name);
+        String version = decoder.readNullableString();
+        return new DefaultExactCapabilitySelector(new DefaultImmutableCapability(group, name, version));
     }
 
     private static CapabilitySelector readFeatureCapabilitySelector(Decoder decoder) throws IOException {
@@ -55,7 +57,7 @@ public class CapabilitySelectorSerializer implements Serializer<CapabilitySelect
     public void write(Encoder encoder, CapabilitySelector value) throws IOException {
         if (value instanceof ExactCapabilitySelector) {
             encoder.writeSmallInt(EXACT_CAPABILITY_SELECTOR);
-            writeExactCapabilitySelector(encoder, (ExactCapabilitySelector) value);
+            writeExactCapabilitySelector(encoder, (DefaultExactCapabilitySelector) value);
         } else if (value instanceof FeatureCapabilitySelector) {
             encoder.writeSmallInt(FEATURE_CAPABILITY_SELECTOR);
             writeFeatureCapabilitySelector(encoder, (FeatureCapabilitySelector) value);
@@ -64,9 +66,10 @@ public class CapabilitySelectorSerializer implements Serializer<CapabilitySelect
         }
     }
 
-    private static void writeExactCapabilitySelector(Encoder encoder, ExactCapabilitySelector value) throws IOException {
+    private static void writeExactCapabilitySelector(Encoder encoder, DefaultExactCapabilitySelector value) throws IOException {
         encoder.writeString(value.getGroup());
         encoder.writeString(value.getName());
+        encoder.writeNullableString(value.getBackingCapability().getVersion());
     }
 
     private static void writeFeatureCapabilitySelector(Encoder encoder, FeatureCapabilitySelector value) throws IOException {

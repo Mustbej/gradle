@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.capability.DefaultExactCapabilitySelect
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DesugaredAttributeContainerSerializer
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.internal.component.external.model.DefaultImmutableCapability
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.util.TestUtil
 
@@ -76,6 +77,6 @@ class ModuleComponentSelectorSerializerTest extends SerializerSpec {
     }
 
     private static ExactCapabilitySelector capability(String name) {
-        return new DefaultExactCapabilitySelector("test", name)
+        return new DefaultExactCapabilitySelector(new DefaultImmutableCapability("test", name, "1"))
     }
 }

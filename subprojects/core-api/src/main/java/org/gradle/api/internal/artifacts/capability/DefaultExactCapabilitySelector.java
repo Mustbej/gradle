@@ -17,30 +17,42 @@
 package org.gradle.api.internal.artifacts.capability;
 
 import org.gradle.api.artifacts.capability.ExactCapabilitySelector;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
 
 public class DefaultExactCapabilitySelector implements ExactCapabilitySelector {
 
-    private final String group;
-    private final String name;
+    // Ideally we would only hold a group and version, but for
+    // backwards compatibility reasons we need to hold the requested
+    // version even if it is ignored by the selector.
+    private final ImmutableCapability backingCapability;
 
-    public DefaultExactCapabilitySelector(String group, String name) {
-        this.group = group;
-        this.name = name;
+    public DefaultExactCapabilitySelector(ImmutableCapability backingCapability) {
+        this.backingCapability = backingCapability;
     }
 
     @Override
     public String getGroup() {
-        return group;
+        return backingCapability.getGroup();
     }
 
     @Override
     public String getName() {
-        return name;
+        return backingCapability.getName();
     }
 
     @Override
     public String getDisplayName() {
-        return group + ":" + name;
+        // We intentionally do not display the version here.
+        // An exact version selector does not have a version.
+        return getGroup() + ":" + getName();
+    }
+
+    /**
+     * The originally requested capability, including the version, which is ignored
+     * during capability selection. Avoid this method if possible.
+     */
+    public ImmutableCapability getBackingCapability() {
+        return backingCapability;
     }
 
     @Override
@@ -58,13 +70,13 @@ public class DefaultExactCapabilitySelector implements ExactCapabilitySelector {
         }
 
         DefaultExactCapabilitySelector that = (DefaultExactCapabilitySelector) o;
-        return group.equals(that.group) && name.equals(that.name);
+        return getGroup().equals(that.getGroup()) && getName().equals(that.getName());
     }
 
     @Override
     public int hashCode() {
-        int result = group.hashCode();
-        result = 31 * result + name.hashCode();
+        int result = getGroup().hashCode();
+        result = 31 * result + getName().hashCode();
         return result;
     }
 }

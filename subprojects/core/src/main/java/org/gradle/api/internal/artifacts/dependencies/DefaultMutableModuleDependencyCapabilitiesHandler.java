@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.capability.DefaultExactCapabilitySelector;
 import org.gradle.api.internal.artifacts.capability.DefaultFeatureCapabilitySelector;
+import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
@@ -52,7 +53,7 @@ public abstract class DefaultMutableModuleDependencyCapabilitiesHandler implemen
 
     private DefaultExactCapabilitySelector convertExact(Object notation) {
         Capability capability = capabilityNotationParser.parseNotation(notation);
-        return new DefaultExactCapabilitySelector(capability.getGroup(), capability.getName());
+        return new DefaultExactCapabilitySelector((ImmutableCapability) capability);
     }
 
     @Override

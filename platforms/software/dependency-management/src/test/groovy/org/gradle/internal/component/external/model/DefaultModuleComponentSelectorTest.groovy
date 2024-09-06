@@ -135,7 +135,7 @@ class DefaultModuleComponentSelectorTest extends Specification {
 
     def "can create new selector with capabilities"() {
         def capabilities = ImmutableSet.of(
-            new DefaultExactCapabilitySelector("org", "blah"),
+            new DefaultExactCapabilitySelector(new DefaultImmutableCapability("org", "blah", "1")),
             new DefaultFeatureCapabilitySelector("foo")
         )
         when:
@@ -151,6 +151,8 @@ class DefaultModuleComponentSelectorTest extends Specification {
         selector.versionConstraint.rejectedVersions == []
         selector.attributes.isEmpty()
         selector.capabilitySelectors == capabilities
+        selector.requestedCapabilities[0] == ((DefaultExactCapabilitySelector) capabilities[0]).backingCapability
+        selector.requestedCapabilities[1] == new DefaultImmutableCapability("some-group", "some-name-foo", "1.0")
         selector.displayName == 'some-group:some-name:1.0'
         selector.toString() == 'some-group:some-name:1.0'
     }
