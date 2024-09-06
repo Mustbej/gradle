@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.capability.ExactCapabilitySelector;
 import org.gradle.api.artifacts.capability.FeatureCapabilitySelector;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.capability.DefaultExactCapabilitySelector;
 import org.gradle.api.internal.project.ProjectIdentity;
@@ -69,7 +70,28 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     @Override
+    public String getPath() {
+        return dependencyProject.getPath();
+    }
+
+    @Override
+    public String getBuildTreePath() {
+        return dependencyProject.getBuildTreePath();
+    }
+
+    @Override
+    public BuildIdentifier getBuildIdentifier() {
+        return dependencyProject.getOwner().getOwner().getBuildIdentifier();
+    }
+
+    @Override
+    @Deprecated
     public Project getDependencyProject() {
+        DeprecationLogger.deprecateMethod(ProjectDependency.class, "getDependencyProject()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecate_get_dependency_project")
+            .nagUser();
+
         return dependencyProject;
     }
 
@@ -99,7 +121,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     private Configuration findProjectConfiguration() {
-        ConfigurationContainer dependencyConfigurations = getDependencyProject().getConfigurations();
+        ConfigurationContainer dependencyConfigurations = DeprecationLogger.whileDisabled(() -> getDependencyProject().getConfigurations());
         String declaredConfiguration = getTargetConfiguration();
         Configuration selectedConfiguration = dependencyConfigurations.getByName(GUtil.isTrue(declaredConfiguration) ? declaredConfiguration : Dependency.DEFAULT_CONFIGURATION);
         if (!selectedConfiguration.isCanBeConsumed()) {
