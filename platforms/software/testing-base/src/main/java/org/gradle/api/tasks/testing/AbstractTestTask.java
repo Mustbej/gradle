@@ -418,7 +418,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * apply plugin: 'java'
      *
      * test.testLogging {
-     *     exceptionFormat "full"
+     *     exceptionFormat org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
      * }
      * </pre>
      *

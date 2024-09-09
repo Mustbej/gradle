@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.logging
 
 import org.gradle.api.internal.tasks.testing.SimpleTestResult
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.api.tasks.testing.logging.TestLogging
@@ -111,6 +112,38 @@ class TestEventLoggerTest extends Specification {
     def "allows empty event set"() {
         expect:
         testLogging.setEvents(Collections.emptySet())
+    }
+
+    def "allows standardStreams to be turned on and off"() {
+        def stdOutEvent = Mock(TestOutputEvent) {
+            getDestination() >> TestOutputEvent.Destination.StdOut
+            getMessage() >> "Hello from StdOut"
+        }
+        def stdErrorEvent = Mock(TestOutputEvent) {
+            getDestination() >> TestOutputEvent.Destination.StdErr
+            getMessage() >> "Hello from StdErr"
+        }
+
+        when:
+        textOutputFactory.clear()
+        testLogging.showStandardStreams = false
+        def eventLogger = newTestEventLogger()
+        eventLogger.onOutput(methodDescriptor, stdOutEvent)
+        eventLogger.onOutput(methodDescriptor, stdErrorEvent)
+
+        then:
+        textOutputFactory.toString().isEmpty()
+
+        when:
+        textOutputFactory.clear()
+        testLogging.showStandardStreams = true
+        eventLogger = newTestEventLogger()
+        eventLogger.onOutput(methodDescriptor, stdOutEvent)
+        eventLogger.onOutput(methodDescriptor, stdErrorEvent)
+
+        then:
+        textOutputFactory.toString().contains("Hello from StdOut")
+        textOutputFactory.toString().contains("Hello from StdErr")
     }
 
     private TestEventLogger newTestEventLogger() {

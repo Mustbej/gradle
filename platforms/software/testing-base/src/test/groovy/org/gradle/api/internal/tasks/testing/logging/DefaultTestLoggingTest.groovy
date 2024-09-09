@@ -28,10 +28,10 @@ class DefaultTestLoggingTest extends Specification {
 
     def "has defaults"() {
         expect:
-        logging.events == [] as Set
-        logging.minGranularity == -1
-        logging.maxGranularity == -1
-        logging.stackTraceFilters == [TRUNCATE] as Set
+        logging.events.get() == [] as Set
+        logging.minGranularity.get() == -1
+        logging.maxGranularity.get() == -1
+        logging.stackTraceFilters.get() == [TRUNCATE] as Set
     }
 
     def "allows events to be added as enum values"() {
@@ -39,7 +39,7 @@ class DefaultTestLoggingTest extends Specification {
         logging.events STARTED, SKIPPED
 
         then:
-        logging.events == [STARTED, SKIPPED] as Set
+        logging.events.get() == [STARTED, SKIPPED] as Set
     }
 
     def "allows events to be added as string values"() {
@@ -47,7 +47,7 @@ class DefaultTestLoggingTest extends Specification {
         logging.events "started", "skipped"
 
         then:
-        logging.events == [STARTED, SKIPPED] as Set
+        logging.events.get() == [STARTED, SKIPPED] as Set
     }
 
     def "allows stack trace formats to be added as enum values"() {
@@ -55,7 +55,7 @@ class DefaultTestLoggingTest extends Specification {
         logging.stackTraceFilters TRUNCATE, GROOVY
 
         then:
-        logging.stackTraceFilters == [TRUNCATE, GROOVY] as Set
+        logging.stackTraceFilters.get() == [TRUNCATE, GROOVY] as Set
     }
 
     def "allows stack trace formats to be added as string values"() {
@@ -63,22 +63,6 @@ class DefaultTestLoggingTest extends Specification {
         logging.stackTraceFilters "truncate", "groovy"
 
         then:
-        logging.stackTraceFilters == [TRUNCATE, GROOVY] as Set
-    }
-
-    def "allows standardStreams to be turned on and off"() {
-        when:
-        logging.setShowStandardStreams(true)
-
-        then:
-        logging.showStandardStreams
-        logging.events == [STANDARD_OUT, STANDARD_ERROR] as Set
-
-        when:
-        logging.setShowStandardStreams(false)
-
-        then:
-        !logging.showStandardStreams
-        logging.events == [] as Set
+        logging.stackTraceFilters.get() == [TRUNCATE, GROOVY] as Set
     }
 }

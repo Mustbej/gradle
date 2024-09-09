@@ -19,14 +19,9 @@ package org.gradle.api.tasks.testing.logging;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Internal;
-import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-import org.gradle.util.internal.GUtil;
-
-import java.util.EnumSet;
-import java.util.Set;
 
 /**
  * Options that determine which test events get logged, and at which detail.
@@ -152,6 +147,9 @@ public interface TestLogging {
      * set.
      */
     @Internal
-    @ReplacesEagerProperty(originalType = boolean.class, fluentSetter = true)
+    @ReplacesEagerProperty(replacedAccessors = {
+        @ReplacedAccessor(value = AccessorType.GETTER, name = "getShowStandardStreams", originalType = boolean.class),
+        @ReplacedAccessor(value = AccessorType.SETTER, name = "setShowStandardStreams", originalType = boolean.class, fluentSetter = true)
+    })
     Property<Boolean> getShowStandardStreams();
 }

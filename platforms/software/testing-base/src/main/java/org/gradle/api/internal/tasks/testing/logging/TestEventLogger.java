@@ -65,7 +65,7 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
             return events;
         }
 
-        Set<TestLogEvent> calculatedEvents = EnumSet.copyOf(events);
+        Set<TestLogEvent> calculatedEvents = events.isEmpty() ? EnumSet.noneOf(TestLogEvent.class) : EnumSet.copyOf(events);
         if (showStandardStreams) {
             calculatedEvents.addAll(EnumSet.of(TestLogEvent.STANDARD_OUT, TestLogEvent.STANDARD_ERROR));
         } else {
