@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.logging
 
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.api.tasks.testing.logging.TestLogEvent.*
@@ -23,7 +24,7 @@ import static org.gradle.api.tasks.testing.logging.TestStackTraceFilter.GROOVY
 import static org.gradle.api.tasks.testing.logging.TestStackTraceFilter.TRUNCATE
 
 class DefaultTestLoggingTest extends Specification {
-    private logging = new DefaultTestLogging()
+    private logging = TestUtil.newInstance(DefaultTestLogging.class)
 
     def "has defaults"() {
         expect:
