@@ -266,7 +266,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.excludeRules >> [excludeRule]
         moduleDependency.transitive >> true
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
-        moduleDependency.requestedCapabilities >> []
+        moduleDependency.capabilitySelectors >> ([] as Set)
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -298,7 +298,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.excludeRules >> [excludeRule]
         moduleDependency.transitive >> true
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
-        moduleDependency.requestedCapabilities >> []
+        moduleDependency.capabilitySelectors >> ([] as Set)
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -327,7 +327,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.excludeRules >> [excludeRule]
         moduleDependency.transitive >> true
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
-        moduleDependency.requestedCapabilities >> []
+        moduleDependency.capabilitySelectors >> ([] as Set)
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -364,7 +364,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.excludeRules >> [excludeRule]
         moduleDependency.transitive >> false
         moduleDependency.attributes >> ImmutableAttributes.EMPTY
-        moduleDependency.requestedCapabilities >> []
+        moduleDependency.capabilitySelectors >> ([] as Set)
 
         and:
         publication.from(componentWithDependency(moduleDependency))
@@ -398,7 +398,7 @@ class DefaultMavenPublicationTest extends Specification {
         moduleDependency.excludeRules >> []
         moduleDependency.transitive >> true
         moduleDependency.attributes >> platformAttribute()
-        moduleDependency.requestedCapabilities >> []
+        moduleDependency.capabilitySelectors >> ([] as Set)
 
         and:
         publication.from(createComponent([], [moduleDependency], scope))
@@ -430,7 +430,7 @@ class DefaultMavenPublicationTest extends Specification {
         and:
         projectDependency.excludeRules >> []
         projectDependency.getAttributes() >> ImmutableAttributes.EMPTY
-        projectDependency.requestedCapabilities >> []
+        projectDependency.capabilitySelectors >> ([] as Set)
         projectDependency.getArtifacts() >> []
         projectDependency.getGroup() >> "pub-group"
         projectDependency.getName() >> "pub-name"
@@ -461,7 +461,7 @@ class DefaultMavenPublicationTest extends Specification {
         and:
         projectDependency.excludeRules >> []
         projectDependency.getAttributes() >> ImmutableAttributes.EMPTY
-        projectDependency.requestedCapabilities >> []
+        projectDependency.capabilitySelectors >> ([] as Set)
         projectDependency.getArtifacts() >> []
         projectDependency.getGroup() >> "group"
         projectDependency.getName() >> "name"
