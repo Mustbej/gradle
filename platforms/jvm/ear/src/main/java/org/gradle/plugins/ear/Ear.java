@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -46,6 +47,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.OutputStreamWriter;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Collections.singleton;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
@@ -70,10 +72,11 @@ public abstract class Ear extends Jar {
         generateDeploymentDescriptor = getObjectFactory().property(Boolean.class);
         generateDeploymentDescriptor.convention(true);
         lib = getRootSpec().addChildBeforeSpec(getMainSpec()).into(getLibDirName().orElse(DEFAULT_LIB_DIR_NAME));
+        AtomicReference<SetProperty<EarModule>> topLevelModules = new AtomicReference<>(getObjectFactory().setProperty(EarModule.class));
         getMainSpec().appendCachingSafeCopyAction(action(details -> {
             if (generateDeploymentDescriptor.get()) {
                 checkIfShouldGenerateDeploymentDescriptor(details);
-                recordTopLevelModules(details);
+                topLevelModules.set(union(topLevelModules.get(), recordTopLevelModules(details)));
             }
         }));
 
@@ -86,10 +89,6 @@ public abstract class Ear extends Jar {
         descriptorChild.from(callable(() -> {
             final DeploymentDescriptor descriptor = getDeploymentDescriptor();
             if (descriptor != null && generateDeploymentDescriptor.get()) {
-                if (descriptor.getLibraryDirectory() == null) {
-                    descriptor.setLibraryDirectory(getLibDirName().getOrNull());
-                }
-
                 String descriptorFileName = descriptor.getFileName();
                 if (descriptorFileName.contains("/") || descriptorFileName.contains(File.separator)) {
                     throw new InvalidUserDataException("Deployment descriptor file name must be a simple name but was " + descriptorFileName);
@@ -104,10 +103,15 @@ public abstract class Ear extends Jar {
                     getTemporaryDirFactory(),
                     descriptorFileName,
                     action(file -> outputChangeListener.invalidateCachesFor(singleton(file.getAbsolutePath()))),
-                    action(outputStream ->
-                        // delay obtaining contents to account for descriptor changes
-                        // (for instance, due to modules discovered)
-                        descriptor.writeTo(new OutputStreamWriter(outputStream))
+                    action(outputStream -> {
+                            // delay obtaining contents to account for descriptor changes
+                            // (for instance, due to modules discovered)
+                            // We copy the descriptor since properties are already finalized at that moment with cc
+                            DeploymentDescriptor copyDescriptor = getObjectFactory().newInstance(DefaultDeploymentDescriptor.class).copyFrom(descriptor);
+                            copyDescriptor.getModules().addAll(topLevelModules.get());
+                            copyDescriptor.getLibraryDirectory().set(descriptor.getLibraryDirectory().orElse(getLibDirName()));
+                            copyDescriptor.writeTo(new OutputStreamWriter(outputStream));
+                        }
                     )
                 );
             }
@@ -118,6 +122,13 @@ public abstract class Ear extends Jar {
         appDir = getObjectFactory().directoryProperty();
     }
 
+    private SetProperty<EarModule> union(SetProperty<EarModule> a, SetProperty<EarModule> b) {
+        SetProperty<EarModule> union = getObjectFactory().setProperty(EarModule.class);
+        union.addAll(a);
+        union.addAll(b);
+        return union;
+    }
+
     private FileCollectionFactory fileCollectionFactory() {
         return getServices().get(FileCollectionFactory.class);
     }
@@ -126,7 +137,8 @@ public abstract class Ear extends Jar {
         return getServices().get(OutputChangeListener.class);
     }
 
-    private void recordTopLevelModules(FileCopyDetails details) {
+    private SetProperty<EarModule> recordTopLevelModules(FileCopyDetails details) {
+        SetProperty<EarModule> topLevelModules = getObjectFactory().setProperty(EarModule.class);
         DeploymentDescriptor deploymentDescriptor = getDeploymentDescriptor();
         // since we might generate the deployment descriptor, record each top-level module
         if (deploymentDescriptor != null && details.getPath().lastIndexOf("/") <= 0) {
@@ -137,8 +149,9 @@ public abstract class Ear extends Jar {
                 module = new DefaultEarModule(details.getPath());
             }
 
-            deploymentDescriptor.getModules().add(module);
+            topLevelModules.add(module);
         }
+        return topLevelModules;
     }
 
     private void checkIfShouldGenerateDeploymentDescriptor(FileCopyDetails details) {
