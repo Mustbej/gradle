@@ -76,6 +76,12 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         expect:
+        if (task == 'javaexecProjectMethod') {
+            executer.expectDocumentedDeprecationWarning("The Project.javaexec(Closure) method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_project_exec")
+        }
         succeeds task
 
         where:
@@ -131,6 +137,12 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         expect:
+        if (task == 'execProjectMethod') {
+            executer.expectDocumentedDeprecationWarning("The Project.exec(Closure) method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Use ExecOperations.exec(Action) or ProviderFactory.exec(Action) instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_project_exec")
+        }
         succeeds task
 
         where:
@@ -371,6 +383,17 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         expect:
+        if (task == 'execProjectMethod') {
+            executer.expectDocumentedDeprecationWarning("The Project.exec(Closure) method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Use ExecOperations.exec(Action) or ProviderFactory.exec(Action) instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_project_exec")
+        } else if (task == 'javaexecProjectMethod') {
+            executer.expectDocumentedDeprecationWarning("The Project.javaexec(Closure) method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 9.0. " +
+                "Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_project_exec")
+        }
         succeeds task
 
         where:
