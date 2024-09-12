@@ -1,0 +1,20 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle",
+            "member": "Method org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle.getExecOperations()",
+            "acceptation": "Remove after rebase",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.nativeplatform.test.xctest.tasks.XCTest",
+            "member": "Method org.gradle.nativeplatform.test.xctest.tasks.XCTest.getObjectFactory()",
+            "acceptation": "Remove after rebase",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
+}
