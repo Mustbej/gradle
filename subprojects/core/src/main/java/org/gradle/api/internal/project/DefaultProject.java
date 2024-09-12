@@ -1200,22 +1200,59 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public abstract ProcessOperations getProcessOperations();
 
     @Override
+    @Deprecated
     public ExecResult javaexec(Closure closure) {
-        return javaexec(configureUsing(closure));
+        DeprecationLogger.deprecateMethod(Project.class, "javaexec(Closure)")
+            .withAdvice("Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_project_exec")
+            .nagUser();
+
+        return javaExecImpl(configureUsing(closure));
     }
 
     @Override
+    @Deprecated
     public ExecResult javaexec(Action<? super JavaExecSpec> action) {
+        DeprecationLogger.deprecateMethod(Project.class, "javaexec(Action)")
+            .withAdvice("Use ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action) instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_project_exec")
+            .nagUser();
+
+        return javaExecImpl(action);
+    }
+
+    @Nonnull
+    private ExecResult javaExecImpl(Action<? super JavaExecSpec> action) {
         return getProcessOperations().javaexec(action);
     }
 
     @Override
+    @Deprecated
     public ExecResult exec(Closure closure) {
-        return exec(configureUsing(closure));
+        DeprecationLogger.deprecateMethod(Project.class, "exec(Closure)")
+            .withAdvice("Use ExecOperations.exec(Action) or ProviderFactory.exec(Action) instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_project_exec")
+            .nagUser();
+
+        return execImpl(configureUsing(closure));
     }
 
     @Override
+    @Deprecated
     public ExecResult exec(Action<? super ExecSpec> action) {
+        DeprecationLogger.deprecateMethod(Project.class, "exec(Action)")
+            .withAdvice("Use ExecOperations.exec(Action) or ProviderFactory.exec(Action) instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_project_exec")
+            .nagUser();
+
+        return execImpl(action);
+    }
+
+    private ExecResult execImpl(Action<? super ExecSpec> action) {
         return getProcessOperations().exec(action);
     }
 
