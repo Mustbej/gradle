@@ -54,9 +54,8 @@ class ProcessInPluginIntegrationTest extends AbstractProcessIntegrationTest {
             }
         """)
 
-        executer.noDeprecationChecks()
-
         when:
+        executer.noDeprecationChecks()
         configurationCacheFails(":help")
 
         then:
@@ -107,6 +106,7 @@ class ProcessInPluginIntegrationTest extends AbstractProcessIntegrationTest {
         """)
 
         when:
+        executer.noDeprecationChecks()
         configurationCacheFails(":help")
 
         then:

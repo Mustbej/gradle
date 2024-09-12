@@ -61,6 +61,7 @@ class ProcessInTaskIntegrationTest extends AbstractProcessIntegrationTest {
         """)
 
         when:
+        executer.noDeprecationChecks()
         configurationCacheFails(":sneakyTask")
 
         then:
