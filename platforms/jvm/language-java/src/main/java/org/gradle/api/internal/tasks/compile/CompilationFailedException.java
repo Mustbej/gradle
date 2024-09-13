@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import org.gradle.api.problems.internal.AdditionalData;
+import org.gradle.api.problems.internal.GeneralData;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemAwareFailure;
 import org.gradle.internal.exceptions.CompilationFailedIndicator;
@@ -54,10 +56,26 @@ public class CompilationFailedException extends RuntimeException implements Comp
         this.reportedProblems = Collections.emptyList();
     }
 
-    public CompilationFailedException(@Nullable ApiCompilerResult result, Collection<Problem> reportedProblems) {
-        super(COMPILATION_FAILED_DETAILS_BELOW);
+    public CompilationFailedException(ApiCompilerResult result, Collection<Problem> reportedProblems, String diagnosticCounts) {
+        super(exceptionMessage(COMPILATION_FAILED_DETAILS_BELOW + System.lineSeparator(), reportedProblems, diagnosticCounts));
         this.compilerPartialResult = result;
         this.reportedProblems = reportedProblems;
+    }
+
+    private static String exceptionMessage(String prefix, Collection<Problem> problems, String diagnosticCounts) {
+        StringBuilder result = new StringBuilder(prefix);
+        String sep = "";
+        for (Problem problem : problems) {
+            AdditionalData additionalData = problem.getAdditionalData();
+            if (additionalData instanceof GeneralData) {
+                result.append(sep);
+                result.append(((GeneralData) additionalData).getAsMap().get("formatted"));
+                sep = System.lineSeparator();
+            }
+        }
+        result.append(System.lineSeparator());
+        result.append(diagnosticCounts);
+        return result.toString();
     }
 
     public Optional<ApiCompilerResult> getCompilerPartialResult() {

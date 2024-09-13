@@ -113,10 +113,19 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
      *
      * @see com.sun.tools.javac.main.JavaCompiler#printCount(String, int)
      */
-    void printDiagnosticCounts() {
+    String diagnosticCounts() {
         Log logger = Log.instance(new Context());
-        printDiagnosticCount(logger, "error", errorCount);
-        printDiagnosticCount(logger, "warn", warningCount);
+        String error = diagnosticCount(logger, "error", errorCount);
+        String warning = diagnosticCount(logger, "warn", warningCount);
+        if (!"".equals(error) && !"".equals(warning)) {
+            return error + System.lineSeparator() + warning;
+        } else if ("".equals(error) && !"".equals(warning)) {
+            return warning;
+        } else if (!"".equals(error) && "".equals(warning)) {
+            return error;
+        } else {
+            return "";
+        }
     }
 
     /**
@@ -132,14 +141,14 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
      * @param kind the kind of diagnostic (error, or warn)
      * @param number the total number of diagnostics of the given kind
      */
-    private static void printDiagnosticCount(Log logger, String kind, int number) {
+    private static String diagnosticCount(Log logger, String kind, int number) {
         // Compiler only handles 'error' and 'warn' kinds
         if (!("error".equals(kind) || "warn".equals(kind))) {
             throw new IllegalArgumentException("kind must be either 'error' or 'warn'");
         }
         // If there are no diagnostics of this kind, we don't need to print anything
         if (number == 0) {
-            return;
+            return "";
         }
 
         // See the distributions' respective `compiler.java` files to see the keys used for localization.
@@ -152,8 +161,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
             keyBuilder.append(".plural");
         }
 
-        String localizedMessage = logger.localize(keyBuilder.toString(), number);
-        System.err.println(localizedMessage);
+        return logger.localize(keyBuilder.toString(), number);
     }
 
     @VisibleForTesting

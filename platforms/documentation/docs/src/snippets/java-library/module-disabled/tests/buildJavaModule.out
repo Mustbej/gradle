@@ -23,6 +23,7 @@ Java compilation error (compilation:java:java-compilation-error)
   /home/user/gradle/samples/src/main/java/module-info.java:3: error: module not found: org.apache.commons.lang3
       requires org.apache.commons.lang3; // automatic module
                                  ^
+  2 errors
 
 * Try:
 > Run with --info option to get more log output.
