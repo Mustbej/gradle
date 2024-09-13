@@ -361,8 +361,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
     def "can rethrow an exception"() {
         given:
         withReportProblemTask """
-            problems.forNamespace('org.example.plugin').rethrowing(new RuntimeException("test")) {
-                it.id('type', 'label')
+            problems.forNamespace('org.example.plugin').throwing {
+                it.id('type', 'label').withException(new RuntimeException('test'))
             }
         """
 
@@ -382,8 +382,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                     .withException(new RuntimeException("test"))
                 }
             } catch (RuntimeException ex) {
-                problems.forNamespace("org.example.plugin").rethrowing(ex) {
-                    it.id('type12', 'outer')
+                problems.forNamespace("org.example.plugin").throwing {
+                    it.id('type12', 'outer').withException(ex)
                 }
             }
         """
