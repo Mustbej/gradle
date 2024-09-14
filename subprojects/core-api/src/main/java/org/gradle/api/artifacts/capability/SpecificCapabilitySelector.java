@@ -25,7 +25,6 @@ import org.gradle.internal.HasInternalProtocol;
  * @since 8.11
  */
 @Incubating
-@HasInternalProtocol
 public interface SpecificCapabilitySelector extends CapabilitySelector {
 
     /**

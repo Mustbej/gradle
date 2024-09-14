@@ -31,7 +31,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.internal.Pair;
-import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
@@ -61,7 +60,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private final Long resultId;
     private final ModuleResolveState module;
     private final List<ComponentSelectionDescriptorInternal> selectionCauses = new ArrayList<>();
-    private final DefaultImmutableCapability implicitCapability;
     private final int hashCode;
 
     private volatile ComponentGraphResolveState resolveState;
@@ -82,7 +80,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         this.id = id;
         this.componentIdentifier = componentIdentifier;
         this.resolver = resolver;
-        this.implicitCapability = DefaultImmutableCapability.defaultCapabilityForComponent(id);
         this.hashCode = 31 * id.hashCode() ^ Long.hashCode(resultId);
     }
 
@@ -453,13 +450,13 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     Capability getImplicitCapability() {
-        return implicitCapability;
+        return resolveState.getDefaultCapability();
     }
 
     @Nullable
     Capability findCapability(String group, String name) {
         if (id.getGroup().equals(group) && id.getName().equals(name)) {
-            return implicitCapability;
+            return getImplicitCapability();
         }
         return null;
     }
