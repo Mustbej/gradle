@@ -41,6 +41,7 @@ public class StartParameterInternal extends StartParameter {
     private @Nullable String configurationCacheIgnoredFileSystemCheckInputs = null;
     private boolean configurationCacheRecreateCache;
     private boolean configurationCacheQuiet;
+    private boolean kotlinDslDclEnabled;
     private boolean searchUpwards = true;
     private boolean useEmptySettings = false;
     private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
@@ -77,6 +78,7 @@ public class StartParameterInternal extends StartParameter {
         p.configurationCacheDebug = configurationCacheDebug;
         p.configurationCacheRecreateCache = configurationCacheRecreateCache;
         p.configurationCacheQuiet = configurationCacheQuiet;
+        p.kotlinDslDclEnabled = kotlinDslDclEnabled;
         p.searchUpwards = searchUpwards;
         p.useEmptySettings = useEmptySettings;
         return p;
@@ -236,5 +238,13 @@ public class StartParameterInternal extends StartParameter {
 
     public void setPropertyUpgradeReportEnabled(boolean propertyUpgradeReportEnabled) {
         this.propertyUpgradeReportEnabled = propertyUpgradeReportEnabled;
+    }
+
+    public boolean isKotlinDslDclEnabled() {
+        return kotlinDslDclEnabled;
+    }
+
+    public void setKotlinDslDclEnabled(boolean kotlinDslDclEnabled) {
+        this.kotlinDslDclEnabled = kotlinDslDclEnabled;
     }
 }

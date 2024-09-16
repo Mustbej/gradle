@@ -153,6 +153,7 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isConfigurationCacheDebug());
             encoder.writeBoolean(startParameter.isConfigurationCacheRecreateCache());
             encoder.writeBoolean(startParameter.isConfigurationCacheQuiet());
+            encoder.writeBoolean(startParameter.isKotlinDslDclEnabled());
             encoder.writeBoolean(startParameter.isConfigureOnDemand());
             encoder.writeBoolean(startParameter.isContinuous());
             encoder.writeLong(startParameter.getContinuousBuildQuietPeriod().toMillis());
@@ -245,6 +246,7 @@ public class BuildActionSerializer {
             startParameter.setConfigurationCacheDebug(decoder.readBoolean());
             startParameter.setConfigurationCacheRecreateCache(decoder.readBoolean());
             startParameter.setConfigurationCacheQuiet(decoder.readBoolean());
+            startParameter.setKotlinDslDclEnabled(decoder.readBoolean());
             startParameter.setConfigureOnDemand(decoder.readBoolean());
             startParameter.setContinuous(decoder.readBoolean());
             startParameter.setContinuousBuildQuietPeriod(Duration.ofMillis(decoder.readLong()));
