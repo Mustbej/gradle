@@ -9,7 +9,7 @@ Include only their name, impactful features should be called out separately belo
  THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
 -->
 
-We would like to thank the following community members for their contributions to this release of Gradle: [Matthew Von-Maszewski](https://github.com/matthewvon)
+We would like to thank the following community members for their contributions to this release of Gradle:
 
 Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
 
@@ -53,107 +53,6 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-<a name="dependency-resolution"></a>
-### Dependency management improvements
-
-Gradle's [dependency management](userguide/core_dependency_management.html) infrastructure allows projects to depend on artifacts from external repositories, other projects from the same build, or projects from included builds.
-
-#### Root variant exposed by `ResolutionResult`
-
-The `ResolutionResult` API now exposes the root variant of the resolved graph in addition to its owning component. 
-The root variant is a synthetic variant representing the `Configuration` being resolved, and exposes the first-level dependencies of a resolution.
-Previously, the API only exposed the root component, which exposed the first-level dependencies as well dependencies from other selected variants in the root component. 
-
-This API allows dependency graphs to be traversed more precisely, at the variant-level instead of at the component level.
-When traversing at the variant level, it is possible to differentiate between the production code of a component and its test fixtures.
-
-TODO #29930: Link to userguide on how to traverse a graph
-
-<a name="config-cache"></a>
-### Configuration cache improvements
-
-The [configuration cache](userguide/configuration_cache.html) improves build performance by caching the result of the configuration phase. Gradle uses the configuration cache to skip the configuration phase entirely when nothing that affects the build configuration has changed.
-
-#### Parallel caching for faster loading times
-
-Storing and loading of the configuration cache can now be performed in parallel, resulting in better performance for cache misses and hits. 
-To enable the feature in `gradle.properties`:
-
-```text
-// gradle.properties
-org.gradle.configuration-cache.parallel=true
-```
-
-Note that this is an incubating feature and may expose concurrency issues in some builds. 
-
-See the [configuration cache](userguide/configuration_cache.html#config_cache:usage:parallel) documentation for more details.
-
-<a name="java-compiler-error-rendering"></a>
-### Java compiler errors in the failure report
-
-In previous Gradle versions, finding the reason of a failed compilation was a suboptimal experience: the only pointer we could give to the user was to scroll back, and look for the failed task's output, containing the compiler failure.
-
-Build logs can be extremely long, and support for multiple failures when using the `--continue` flag further complicates discovery, making the identification of the exact failure challenging.
-
-Gradle now gained the ability to collect, and report per-task failures in the bottom "What went wrong" segment.
-This report supplements the usual task output, and aims to give a new way to identify problems quicker and easier.
-
-A simple failure at the bottom of the log will show up as:
-```
-* What went wrong:
-Execution failed for task ':project1:compileJava'.
-> Compilation failed; see the compiler output below.
-
-Java compilation error (compilation:java:java-compilation-error)
-  sample-project/src/main/java/Problem.java:6: error: incompatible types: int cannot be converted to String
-          String a = 1;
-                     ^
-```
-
-If any warning happens during the compilation, it will also be included in the report:
-```
-* What went wrong:
-Execution failed for task ':project1:compileJava'.
-> Compilation failed; see the compiler output below.
-
-Java compilation warning (compilation:java:java-compilation-warning)
-  sample-project/src/main/java/Problem1.java:6: warning: [cast] redundant cast to String
-          var warning = (String)"warning";
-                        ^
-Java compilation error (compilation:java:java-compilation-error)
-  sample-project/src/main/java/Problem2.java:6: error: incompatible types: int cannot be converted to String
-          String a = 1;
-                     ^
-```
-
-Note that the current solution reports upon _failures_. If only warnings happen (and no `-Werror` is set), this report will not be visible.
-
-The feature also works with the [`--continue`](userguide/command_line_interface.html#sec:continue_build_on_failure) flag, and the bottom report will contain a per-task report of all the compilation failures.
-
-<a name="native-plugin-improvements"></a>
-### Core plugin improvements
-
-Gradle provides core plugins for build authors, offering essential tools to simplify project setup and configuration across various languages and platforms.
-
-#### Linux arm64 as a build target
-
-TODO
-
-Thanks to [Matthew Von-Maszewski](https://github.com/matthewvon) for the contribution.
-
-#### Configuration cache compatibility for Swift and C++ plugins
-
-The following Swift and C++ plugins are now [configuration cache](userguide/performance.html#enable_configuration_cache) compatible: 
-- [Swift application](userguide/swift_application_plugin.html)
-- [Swift library](userguide/swift_library_plugin.html)
-- [XCTest](userguide/xctest_plugin.html)
-- [C++ application](userguide/cpp_application_plugin.html)
-- [C++ library](userguide/cpp_library_plugin.html)
-- [CppUnit](userguide/cpp_unit_test_plugin.html)
-- [GoogleTest](userguide/cpp_testing.html)
-- [Visual Studio](userguide/visual_studio_plugin.html)
-
-The [`xcode`](userguide/xcode_plugin.html) is not yet compatible.
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -168,11 +67,9 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-### Stable Build Features API
-
-The [`BuildFeatures`](javadoc/org/gradle/api/configuration/BuildFeatures.html) API is now stable.
-It allows checking the status of Gradle features such as [`configurationCache`](javadoc/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache())
-and [`isolatedProjects`](javadoc/org/gradle/api/configuration/BuildFeatures.html#getIsolatedProjects()).
+<!--
+### Example promoted
+-->
 
 ## Fixed issues
 
