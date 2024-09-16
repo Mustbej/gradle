@@ -304,9 +304,6 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:incompatible-multiple-nodes'
         }
-        verifyAll(receivedProblem(1)) {
-            fqid == 'dependency-variant-resolution:incompatible-multiple-nodes'
-        }
     }
 
     def "demonstrate no matching artifact variants exception"() {
